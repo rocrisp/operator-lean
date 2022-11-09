@@ -1,13 +1,14 @@
 package controllers
 
 import (
+	"reflect"
+	"time"
+
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-	"reflect"
-	"time"
 
 	"context"
 
@@ -96,6 +97,22 @@ func (r *MemcachedReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	// Update the Memcached status with the pod names
 	// List the pods for this memcached's deployment
 	podList := &corev1.PodList{}
+	filterPodList := &corev1.PodList{}
+
+	// Showcase filter is working
+	log.Info("Filtering out pod with labels myapp=notmemcached")
+	filterListOpts := []client.ListOption{
+		client.InNamespace(memcached.Namespace),
+	}
+	if err = r.List(ctx, filterPodList, filterListOpts...); err != nil {
+		log.Error(err, "Failed to list pods", "Memcached.Namespace", memcached.Namespace, "Memcached.Name", memcached.Name)
+		return ctrl.Result{}, err
+	}
+
+	for _, pod := range filterPodList.Items {
+		log.Info("Pod Name : " + pod.Name)
+	}
+
 	listOpts := []client.ListOption{
 		client.InNamespace(memcached.Namespace),
 		client.MatchingLabels(labelsForMemcached(memcached.Name)),
@@ -178,6 +195,7 @@ func labelsForMemcached(name string) map[string]string {
 func getPodNames(pods []corev1.Pod) []string {
 	var podNames []string
 	for _, pod := range pods {
+		//log.Log.Info("Pod Name : " + pod.Name)
 		podNames = append(podNames, pod.Name)
 	}
 	return podNames

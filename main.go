@@ -80,13 +80,17 @@ func main() {
 				// &corev1.Secret{}: {
 				// 	Label: labels.SelectorFromSet(labels.Set{"app": "mine-not-yours"}),
 				// },
-				&corev1.Node{}: {
-					//Field: fields.SelectorFromSet(fields.Set{"metadata.name": "ip-10-0-169-54.us-east-2.compute.internal"}),
-					Label: labels.SelectorFromSet(labels.Set{"myapp": "notmemcached"}),
+				&corev1.Pod{}: {
+					// To test
+					// create a pod
+					// kubectl run nginx1 --image=nginx --restart=Never
+					// oc label pod/nginx1 myapp=memcached
+					// oc get pod --show-labels
+
+					Label: labels.SelectorFromSet(labels.Set{"myapp": "memcached"}),
 				},
 			},
 		}),
-
 		// LeaderElectionReleaseOnCancel defines if the leader should step down voluntarily
 		// when the Manager ends. This requires the binary to immediately end when the
 		// Manager is stopped, otherwise, this setting is unsafe. Setting this significantly
