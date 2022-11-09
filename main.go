@@ -22,15 +22,13 @@ import (
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
-	corev1 "k8s.io/api/core/v1"
+
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
-	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
@@ -75,22 +73,22 @@ func main() {
 		HealthProbeBindAddress: probeAddr,
 		LeaderElection:         enableLeaderElection,
 		LeaderElectionID:       "86f835c3.example.com",
-		NewCache: cache.BuilderWithOptions(cache.Options{
-			SelectorsByObject: cache.SelectorsByObject{
-				// &corev1.Secret{}: {
-				// 	Label: labels.SelectorFromSet(labels.Set{"app": "mine-not-yours"}),
-				// },
-				&corev1.Pod{}: {
-					// To test
-					// create a pod
-					// kubectl run nginx1 --image=nginx --restart=Never
-					// oc label pod/nginx1 myapp=memcached
-					// oc get pod --show-labels
+		//NewCache: cache.BuilderWithOptions(cache.Options{
+		//SelectorsByObject: cache.SelectorsByObject{
+		// &corev1.Secret{}: {
+		// 	Label: labels.SelectorFromSet(labels.Set{"app": "mine-not-yours"}),
+		// },
+		//&corev1.Pod{}: {
+		// To test
+		// create a pod
+		// kubectl run nginx1 --image=nginx --restart=Never
+		// oc label pod/nginx1 myapp=memcached
+		// oc get pod --show-labels
 
-					Label: labels.SelectorFromSet(labels.Set{"myapp": "memcached"}),
-				},
-			},
-		}),
+		//	Label: labels.SelectorFromSet(labels.Set{"app": "memcached"}),
+		//},
+		//},
+		//}),
 		// LeaderElectionReleaseOnCancel defines if the leader should step down voluntarily
 		// when the Manager ends. This requires the binary to immediately end when the
 		// Manager is stopped, otherwise, this setting is unsafe. Setting this significantly

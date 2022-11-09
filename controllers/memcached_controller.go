@@ -100,7 +100,7 @@ func (r *MemcachedReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	filterPodList := &corev1.PodList{}
 
 	// Showcase filter is working
-	log.Info("Filtering out pod with labels myapp=notmemcached")
+	log.Info("Filtering pod with labels myapp=memcached")
 	filterListOpts := []client.ListOption{
 		client.InNamespace(memcached.Namespace),
 	}
@@ -158,7 +158,7 @@ func (r *MemcachedReconciler) deploymentForMemcached(m *cachev1alpha1.Memcached)
 				Spec: corev1.PodSpec{
 					// Ensure restricted context for the Pod
 					SecurityContext: &corev1.PodSecurityContext{
-						RunAsNonRoot: &[]bool{true}[0],
+						//RunAsNonRoot: &[]bool{true}[0],
 						// Please ensure that you can use SeccompProfile and do NOT use
 						// this filed if your project must work on old Kubernetes
 						// versions < 1.19 or on vendors versions which
@@ -168,8 +168,23 @@ func (r *MemcachedReconciler) deploymentForMemcached(m *cachev1alpha1.Memcached)
 						},
 					},
 					Containers: []corev1.Container{{
-						Image:   "memcached:1.4.36-alpine",
-						Name:    "memcached",
+						Image: "memcached:1.4.36-alpine",
+						Name:  "memcached",
+						// Ensure restricted context for the container
+						SecurityContext: &corev1.SecurityContext{
+							// WARNING: Ensure that the image used defines an UserID in the Dockerfile
+							// otherwise the Pod will not run and will fail with `container has runAsNonRoot and image has non-numeric user`.
+							// If you want your workloads admitted in namespaces enforced with the restricted mode in OpenShift/OKD vendors
+							// then, you MUST ensure that the Dockerfile defines a User ID OR you MUST leave the `RunAsNonRoot` and
+							// RunAsUser fields empty.
+							//RunAsNonRoot:             &[]bool{true}[0],
+							AllowPrivilegeEscalation: &[]bool{false}[0],
+							Capabilities: &corev1.Capabilities{
+								Drop: []corev1.Capability{
+									"ALL",
+								},
+							},
+						},
 						Command: []string{"memcached", "-m=64", "-o", "modern", "-v"},
 						Ports: []corev1.ContainerPort{{
 							ContainerPort: 11211,
